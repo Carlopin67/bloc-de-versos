@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#c9a84c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>VersoLibre</title>
+<style>
+/* ============================================================
+   VARIABLES Y TEMAS
+   ============================================================ */
+:root {
+  /* Tema oscuro por defecto — paleta inspirada en tinta y oro viejo */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1a1a26;
+  --bg-card: #15151f;
+  --bg-hover: #1e1e2e;
+  --bg-input: #10101a;
+  --text-primary: #e8e4dc;
+  --text-secondary: #9e9a90;
+  --text-muted: #6b6760;
+  --accent: #c9a84c;
+  --accent-dim: #a08838;
+  --accent-glow: rgba(201,168,76,0.15);
+  --accent-glow-strong: rgba(201,168,76,0.3);
+  --border: #2a2a38;
+  --border-light: #3a3a4a;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+  --font-display: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-body: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --note-font-size: 16px;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f5f0e8;
+  --bg-secondary: #ece7dc;
+  --bg-tertiary: #e2ddd2;
+  --bg-card: #faf7f0;
+  --bg-hover: #eee9de;
+  --bg-input: #fff;
+  --text-primary: #2a2520;
+  --text-secondary: #6b6560;
+  --text-muted: #9a9490;
+  --accent: #8b6914;
+  --accent-dim: #a07a20;
+  --accent-glow: rgba(139,105,20,0.1);
+  --accent-glow-strong: rgba(139,105,20,0.2);
+  --border: #d5cfc4;
+  --border-light: #c5bfb4;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ============================================================
+   RESET Y BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100%;
+  overflow: hidden;
+  transition: background var(--transition), color var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Scrollbar sutil */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.app-logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.app-logo span { font-weight: 300; color: var(--text-secondary); }
+.header-spacer { flex: 1; }
+.header-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+.header-btn:hover, .header-btn:active {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Main content area */
+.app-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Bottom navigation */
+.bottom-nav {
+  display: flex;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all var(--transition);
+  gap: 3px;
+}
+.nav-btn svg { width: 22px; height: 22px; }
+.nav-btn.active { color: var(--accent); }
+.nav-btn:active { transform: scale(0.95); }
+
+/* ============================================================
+   PANELS — vista de notas, editor, rimas, ajustes, etc.
+   ============================================================ */
+.panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+.panel.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   NOTAS LIST VIEW
+   ============================================================ */
+.notes-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 10px;
+}
+.notes-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--accent);
+  flex: 1;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+.search-box svg { color: var(--text-muted); flex-shrink: 0; width: 18px; height: 18px; }
+.search-box input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  font-family: var(--font-body);
+}
+.search-box input::placeholder { color: var(--text-muted); }
+
+/* Tags/folders filter */
+.tags-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.tags-bar::-webkit-scrollbar { display: none; }
+.tag-chip {
+  padding: 6px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+.tag-chip.active {
+  background: var(--accent-glow-strong);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Note cards */
+.note-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+}
+.note-card:active { transform: scale(0.98); }
+.note-card:hover { border-color: var(--border-light); }
+.note-card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.note-card-preview {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.note-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.note-card-meta .tag-badge {
+  background: var(--accent-glow);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+.note-card .fav-star {
+  color: var(--accent);
+  font-size: 14px;
+}
+.note-card .card-actions {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  gap: 4px;
+}
+.card-action-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: color var(--transition);
+}
+.card-action-btn:hover { color: var(--accent); }
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(201,168,76,0.4);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.fab:active { transform: scale(0.9); }
+
+/* ============================================================
+   EDITOR VIEW
+   ============================================================ */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.editor-toolbar button {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition);
+  font-family: var(--font-body);
+}
+.editor-toolbar button:hover, .editor-toolbar button.active {
+  color: var(--accent);
+  border-color: var(--accent-glow);
+  background: var(--accent-glow);
+}
+.editor-toolbar .sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.editor-title-input {
+  width: 100%;
+  background: none;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--text-primary);
+  outline: none;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.editor-title-input::placeholder { color: var(--text-muted); }
+
+.editor-tag-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.editor-tag-row select {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 4px 8px;
+  font-size: 12px;
+  outline: none;
+  font-family: var(--font-body);
+}
+
+.editor-area {
+  width: 100%;
+  min-height: 300px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-size: var(--note-font-size);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  line-height: 1.8;
+  resize: none;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.editor-area:focus { border-color: var(--accent-dim); }
+/* Rich editor mode */
+.editor-area[contenteditable] {
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.stats-bar .stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stats-bar .stat-value {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ============================================================
+   RHYME & SYNONYM PANEL
+   ============================================================ */
+.tool-section {
+  margin-bottom: 20px;
+}
+.tool-section-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rhyme-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.rhyme-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 15px;
+  color: var(--text-primary);
+  outline: none;
+  font-family: var(--font-body);
+  transition: border-color var(--transition);
+}
+.rhyme-input:focus { border-color: var(--accent-dim); }
+.rhyme-search-btn {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition: all var(--transition);
+}
+.rhyme-search-btn:active { transform: scale(0.95); }
+
+.rhyme-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.rhyme-tab {
+  padding: 6px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.rhyme-tab.active {
+  background: var(--accent-glow-strong);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.results-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.result-word {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-display);
+}
+.result-word:active { transform: scale(0.95); }
+.result-word:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.results-empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 20px 0;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ============================================================
+   TEMPLATES PANEL
+   ============================================================ */
+.template-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.template-card:hover { border-color: var(--accent-dim); }
+.template-card h3 {
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+.template-card p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.template-preview {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   SETTINGS PANEL
+   ============================================================ */
+.setting-group {
+  margin-bottom: 20px;
+}
+.setting-group-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.setting-label {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.setting-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+/* Toggle switch */
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: all var(--transition);
+}
+.toggle input:checked + .toggle-track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  top: 2px;
+  left: 2px;
+  transition: all var(--transition);
+}
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(20px);
+  background: var(--bg-primary);
+}
+/* Zoom slider */
+.zoom-slider {
+  width: 120px;
+  accent-color: var(--accent);
+}
+
+/* ============================================================
+   HELP / TUTORIAL PANEL
+   ============================================================ */
+.help-section {
+  margin-bottom: 24px;
+}
+.help-section h3 {
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+.help-section p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.help-kbd {
+  display: inline-block;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+/* ============================================================
+   TUTORIAL OVERLAY
+   ============================================================ */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+.tutorial-card {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  max-width: 360px;
+  width: 90%;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(201,168,76,0.15);
+}
+.tutorial-card h2 {
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.tutorial-card p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+.tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+}
+.tutorial-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all var(--transition);
+}
+.tutorial-dot.active { background: var(--accent); width: 20px; border-radius: 4px; }
+.tutorial-btn {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  font-family: var(--font-body);
+  transition: all var(--transition);
+}
+.tutorial-btn:active { transform: scale(0.95); }
+.tutorial-skip {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 12px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================================
+   MODAL / SHARE
+   ============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+.modal-sheet {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 20px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+.modal-sheet h3 {
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.modal-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background var(--transition);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+.modal-option:hover { background: var(--bg-hover); }
+.modal-option svg { width: 20px; height: 20px; color: var(--accent); }
+.modal-close {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: var(--bg-primary);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 600;
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s;
+  pointer-events: none;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width: 600px) {
+  .panel { padding: 24px 32px; }
+  .note-card { padding: 18px 22px; }
+}
+
+/* Prevent content behind keyboard on mobile */
+.editor-area { max-height: calc(100dvh - 280px); overflow-y: auto; }
+
+/* ============================================================
+   CONFIRM DIALOG
+   ============================================================ */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 600; display: flex; align-items: center; justify-content: center;
+}
+.confirm-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; max-width: 320px; width: 85%;
+  text-align: center;
+}
+.confirm-box p { color: var(--text-primary); font-size: 15px; margin-bottom: 16px; }
+.confirm-btns { display: flex; gap: 10px; justify-content: center; }
+.confirm-btns button {
+  padding: 8px 20px; border-radius: var(--radius-xs); font-size: 14px;
+  cursor: pointer; font-family: var(--font-body); border: 1px solid var(--border);
+}
+.confirm-btns .btn-danger { background: #c0392b; color: #fff; border-color: #c0392b; }
+.confirm-btns .btn-cancel { background: var(--bg-tertiary); color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     APP STRUCTURE
+     ============================================================ -->
+<div id="app">
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-logo">Verso<span>Libre</span></div>
+    <div class="header-spacer"></div>
+    <!-- Back button (visible in editor) -->
+    <button class="header-btn" id="backBtn" style="display:none" title="Volver">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <!-- Templates -->
+    <button class="header-btn" id="templatesBtn" title="Plantillas de versos">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+    </button>
+    <!-- Settings -->
+    <button class="header-btn" id="settingsBtn" title="Ajustes">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <!-- CONTENT PANELS -->
+  <div class="app-content">
+
+    <!-- ====== NOTES LIST ====== -->
+    <div class="panel active" id="panelNotes">
+      <div class="notes-header">
+        <div class="notes-title">Mis Versos</div>
+      </div>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar notas...">
+      </div>
+      <div class="tags-bar" id="tagsBar"></div>
+      <div id="notesList"></div>
+    </div>
+
+    <!-- ====== EDITOR ====== -->
+    <div class="panel" id="panelEditor">
+      <input class="editor-title-input" id="editorTitle" placeholder="Título del verso..." maxlength="100">
+      <div class="editor-tag-row">
+        <select id="editorTag">
+          <option value="">Sin etiqueta</option>
+          <option value="poema">🪶 Poema</option>
+          <option value="cancion">🎵 Canción</option>
+          <option value="borrador">📝 Borrador</option>
+        </select>
+        <button class="card-action-btn" id="editorFavBtn" title="Favorito">☆</button>
+        <div style="flex:1"></div>
+        <button class="card-action-btn" id="editorShareBtn" title="Compartir">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+        </button>
+      </div>
+      <!-- Rich text toolbar (toggleable) -->
+      <div class="editor-toolbar" id="richToolbar" style="display:none">
+        <button onclick="document.execCommand('bold')" title="Negrita"><b>N</b></button>
+        <button onclick="document.execCommand('italic')" title="Cursiva"><i>K</i></button>
+        <button onclick="document.execCommand('underline')" title="Subrayado"><u>S</u></button>
+        <div class="sep"></div>
+        <button id="undoBtn" title="Deshacer">↩</button>
+        <button id="redoBtn" title="Rehacer">↪</button>
+      </div>
+      <!-- Plain text undo/redo (when rich editor is off) -->
+      <div class="editor-toolbar" id="plainToolbar">
+        <button id="undoBtnPlain" title="Deshacer">↩ Deshacer</button>
+        <button id="redoBtnPlain" title="Rehacer">↪ Rehacer</button>
+      </div>
+      <!-- Editor area (switches between textarea and contenteditable div) -->
+      <textarea class="editor-area" id="editorPlain" placeholder="Escribe tu verso aquí..."></textarea>
+      <div class="editor-area" id="editorRich" contenteditable="true" style="display:none" data-placeholder="Escribe tu verso aquí..."></div>
+      <!-- Stats -->
+      <div class="stats-bar" id="statsBar">
+        <div class="stat">Palabras: <span class="stat-value" id="statWords">0</span></div>
+        <div class="stat">Sílabas: <span class="stat-value" id="statSyllables">0</span></div>
+        <div class="stat" id="statVersesWrap">Versos: <span class="stat-value" id="statVerses">0</span></div>
+        <div class="stat" id="statCharWrap">Caracteres: <span class="stat-value" id="statChars">0</span></div>
+      </div>
+    </div>
+
+    <!-- ====== RHYMES & SYNONYMS ====== -->
+    <div class="panel" id="panelTools">
+      <div class="tool-section">
+        <div class="tool-section-title">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          Motor de Rimas
+        </div>
+        <div class="rhyme-input-row">
+          <input class="rhyme-input" id="rhymeInput" placeholder="Escribe una palabra..." autocomplete="off" autocapitalize="none">
+          <button class="rhyme-search-btn" id="rhymeSearchBtn">Buscar</button>
+        </div>
+        <div class="rhyme-type-tabs">
+          <div class="rhyme-tab active" data-type="consonante">Consonante</div>
+          <div class="rhyme-tab" data-type="asonante">Asonante</div>
+        </div>
+        <div id="rhymeResults" class="results-grid"></div>
+        <div id="rhymeStatus" class="results-empty" style="display:none"></div>
+      </div>
+
+      <div class="tool-section">
+        <div class="tool-section-title">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          Sinónimos
+        </div>
+        <div class="rhyme-input-row">
+          <input class="rhyme-input" id="synonymInput" placeholder="Buscar sinónimos..." autocomplete="off" autocapitalize="none">
+          <button class="rhyme-search-btn" id="synonymSearchBtn">Buscar</button>
+        </div>
+        <div id="synonymResults" class="results-grid"></div>
+        <div id="synonymStatus" class="results-empty" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- ====== TEMPLATES ====== -->
+    <div class="panel" id="panelTemplates">
+      <div class="tool-section-title" style="margin-bottom:16px">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        Plantillas de Versos
+      </div>
+      <div id="templatesList"></div>
+    </div>
+
+    <!-- ====== SETTINGS ====== -->
+    <div class="panel" id="panelSettings">
+      <div class="tool-section-title" style="margin-bottom:16px">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Ajustes
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">Apariencia</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Tema oscuro</div>
+            <div class="setting-desc">Alterna entre tema claro y oscuro</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggleDarkMode" checked>
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Zoom del texto</div>
+            <div class="setting-desc">Tamaño del texto en el editor</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="zoomValue" style="font-size:12px;color:var(--accent)">16px</span>
+            <input type="range" class="zoom-slider" id="zoomSlider" min="12" max="28" value="16">
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">Editor</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Editor enriquecido</div>
+            <div class="setting-desc">Negrita, cursiva y subrayado</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggleRichEdit">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Métrica y ritmo</div>
+            <div class="setting-desc">Contadores adicionales (versos, caracteres)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="toggleMetrics" checked>
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-group-title">Datos</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Diccionario cargado</div>
+            <div class="setting-desc" id="dictStatus">Cargando...</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <button class="rhyme-search-btn" id="resetTutorialBtn" style="font-size:13px;padding:8px 14px">Repetir tutorial</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== HELP ====== -->
+    <div class="panel" id="panelHelp">
+      <div class="tool-section-title" style="margin-bottom:16px">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        Ayuda
+      </div>
+      <div class="help-section">
+        <h3>Motor de Rimas</h3>
+        <p>Escribe cualquier palabra en la pestaña "Herramientas" para encontrar rimas consonantes (terminaciones idénticas) y asonantes (solo vocales coinciden). El motor analiza la sílaba tónica para resultados precisos. Funciona 100% offline.</p>
+      </div>
+      <div class="help-section">
+        <h3>Contador de Sílabas</h3>
+        <p>Siempre activo en la barra inferior del editor. Cuenta automáticamente las sílabas de todo tu texto conforme escribes. Ideal para mantener la métrica de tus versos.</p>
+      </div>
+      <div class="help-section">
+        <h3>Editor Enriquecido</h3>
+        <p>Actívalo en <span class="help-kbd">Ajustes → Editor enriquecido</span>. Permite usar negrita, cursiva y subrayado. Desactívalo para un editor de texto plano más sencillo.</p>
+      </div>
+      <div class="help-section">
+        <h3>Organización</h3>
+        <p>Usa las etiquetas (Poema, Canción, Borrador) para clasificar tus notas. Marca como favorito con la estrella ☆. Filtra por etiqueta usando los chips en la vista principal.</p>
+      </div>
+      <div class="help-section">
+        <h3>Plantillas de Versos</h3>
+        <p>Accede desde el icono de documento en la cabecera. Elige entre soneto, cuarteto, haiku, décima y más. La plantilla se carga en una nueva nota lista para editar.</p>
+      </div>
+      <div class="help-section">
+        <h3>Compartir</h3>
+        <p>Pulsa el icono de compartir en cada nota para copiar al portapapeles o exportar como TXT o PDF.</p>
+      </div>
+      <div class="help-section">
+        <h3>Tema y Zoom</h3>
+        <p>Cambia entre tema claro y oscuro en <span class="help-kbd">Ajustes</span>. Ajusta el zoom del texto con el deslizador para mayor comodidad.</p>
+      </div>
+      <div class="help-section">
+        <h3>Deshacer / Rehacer</h3>
+        <p>Usa los botones ↩ y ↪ en la barra del editor para navegar el historial de cambios.</p>
+      </div>
+    </div>
+
+  </div><!-- end app-content -->
+
+  <!-- FAB (new note) -->
+  <button class="fab" id="fabNewNote" title="Nueva nota">+</button>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-panel="panelNotes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Notas
+    </button>
+    <button class="nav-btn" data-panel="panelTools">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Herramientas
+    </button>
+    <button class="nav-btn" data-panel="panelHelp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+      Ayuda
+    </button>
+  </nav>
+</div>
+
+<!-- ============================================================
+     TUTORIAL OVERLAY (shown on first visit)
+     ============================================================ -->
+<div class="tutorial-overlay" id="tutorialOverlay" style="display:none">
+  <div class="tutorial-card">
+    <h2 id="tutTitle"></h2>
+    <p id="tutText"></p>
+    <div class="tutorial-dots" id="tutDots"></div>
+    <button class="tutorial-btn" id="tutNextBtn">Siguiente</button>
+    <button class="tutorial-skip" id="tutSkipBtn">Saltar tutorial</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT — Motor completo de la aplicación
+     ============================================================ -->
+<script>
+/* ============================================================
+   MÓDULO 1: ALMACENAMIENTO LOCAL (IndexedDB + localStorage)
+   Persiste notas y ajustes offline
+   ============================================================ */
+const Storage = (() => {
+  const DB_NAME = 'VersoLibreDB';
+  const DB_VER = 1;
+  let db = null;
+
+  function open() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('notes')) {
+          const store = d.createObjectStore('notes', { keyPath: 'id' });
+          store.createIndex('tag', 'tag', { unique: false });
+          store.createIndex('fav', 'fav', { unique: false });
+          store.createIndex('updated', 'updated', { unique: false });
+        }
+      };
+      req.onsuccess = e => { db = e.target.result; resolve(db); };
+      req.onerror = e => reject(e);
+    });
+  }
+
+  function tx(storeName, mode) {
+    return db.transaction(storeName, mode).objectStore(storeName);
+  }
+
+  function promisify(req) {
+    return new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = rej; });
+  }
+
+  return {
+    init: open,
+    async getAllNotes() {
+      return promisify(tx('notes', 'readonly').getAll());
+    },
+    async saveNote(note) {
+      return promisify(tx('notes', 'readwrite').put(note));
+    },
+    async deleteNote(id) {
+      return promisify(tx('notes', 'readwrite').delete(id));
+    },
+    getSetting(key, def) {
+      try { const v = localStorage.getItem('vl_' + key); return v !== null ? JSON.parse(v) : def; }
+      catch { return def; }
+    },
+    setSetting(key, val) {
+      localStorage.setItem('vl_' + key, JSON.stringify(val));
+    }
+  };
+})();
+
+/* ============================================================
+   MÓDULO 2: SILABIFICACIÓN ESPAÑOLA
+   Divide palabras en sílabas según reglas del español
+   ============================================================ */
+const Syllables = (() => {
+  const VOWELS = 'aeiouáéíóúü';
+  const STRONG = 'aeoáéó';
+  const WEAK = 'iuüíú';
+  const ACCENTED = 'áéíóú';
+
+  function isVowel(c) { return VOWELS.includes(c); }
+  function isStrong(c) { return STRONG.includes(c); }
+  function isWeak(c) { return WEAK.includes(c); }
+  function isAccented(c) { return ACCENTED.includes(c); }
+
+  // Consonantes que no se separan con la siguiente vocal
+  const INSEP = new Set(['bl','br','cl','cr','dr','fl','fr','gl','gr','kl','kr','pl','pr','tl','tr','ch','ll','rr','qu','gu']);
+
+  /**
+   * Divide una palabra en sílabas.
+   * Retorna array de sílabas.
+   */
+  function syllabify(word) {
+    word = word.toLowerCase().trim();
+    if (!word) return [];
+
+    const chars = [...word];
+    const n = chars.length;
+    const syllables = [];
+    let current = '';
+
+    let i = 0;
+    while (i < n) {
+      const c = chars[i];
+
+      if (isVowel(c)) {
+        current += c;
+        // Check for diphthongs/triphthongs
+        if (i + 1 < n && isVowel(chars[i + 1])) {
+          const c1 = c, c2 = chars[i + 1];
+          // Hiato: two strong vowels separate
+          if (isStrong(c1) && isStrong(c2)) {
+            syllables.push(current);
+            current = '';
+            i++;
+            continue;
+          }
+          // Hiato: accented weak + strong or strong + accented weak
+          if ((isWeak(c1) && isAccented(c1)) || (isWeak(c2) && isAccented(c2))) {
+            if ((isWeak(c1) && isAccented(c1) && isStrong(c2)) ||
+                (isStrong(c1) && isWeak(c2) && isAccented(c2))) {
+              syllables.push(current);
+              current = '';
+              i++;
+              continue;
+            }
+          }
+          // Diphthong: keep together
+          current += chars[i + 1];
+          i += 2;
+          // Check triphthong
+          if (i < n && isVowel(chars[i]) && isWeak(chars[i])) {
+            current += chars[i];
+            i++;
+          }
+          continue;
+        }
+        i++;
+      } else {
+        // Consonant
+        if (current.length === 0 || !current.split('').some(ch => isVowel(ch))) {
+          // Still building onset
+          current += c;
+          i++;
+        } else {
+          // After a vowel — decide where to split
+          let consCluster = c;
+          let j = i + 1;
+          while (j < n && !isVowel(chars[j])) {
+            consCluster += chars[j];
+            j++;
+          }
+
+          if (j >= n) {
+            // End of word, all consonants stay with current syllable
+            current += consCluster;
+            i = j;
+          } else {
+            // Split consonant cluster
+            const cl = consCluster.length;
+            if (cl === 1) {
+              // Single consonant goes with next syllable
+              syllables.push(current);
+              current = c;
+              i++;
+            } else if (cl === 2) {
+              const pair = consCluster;
+              if (INSEP.has(pair)) {
+                syllables.push(current);
+                current = pair;
+                i = j;
+              } else {
+                current += pair[0];
+                syllables.push(current);
+                current = pair[1];
+                i = i + 2;
+              }
+            } else if (cl === 3) {
+              const lastTwo = consCluster.slice(-2);
+              if (INSEP.has(lastTwo)) {
+                current += consCluster[0];
+                syllables.push(current);
+                current = lastTwo;
+              } else {
+                current += consCluster.slice(0, 2);
+                syllables.push(current);
+                current = consCluster.slice(2);
+              }
+              i = j;
+            } else {
+              // 4+ consonants
+              const lastTwo = consCluster.slice(-2);
+              if (INSEP.has(lastTwo)) {
+                current += consCluster.slice(0, -2);
+                syllables.push(current);
+                current = lastTwo;
+              } else {
+                current += consCluster.slice(0, -1);
+                syllables.push(current);
+                current = consCluster.slice(-1);
+              }
+              i = j;
+            }
+          }
+        }
+      }
+    }
+
+    if (current) syllables.push(current);
+    return syllables;
+  }
+
+  /**
+   * Encuentra el índice de la sílaba tónica (0-indexed desde el final).
+   * Reglas del español:
+   * - Si tiene tilde, la sílaba con tilde es tónica
+   * - Si termina en vocal, n, s → penúltima (llana)
+   * - Otro caso → última (aguda)
+   */
+  function stressIndex(syllables) {
+    if (syllables.length === 0) return -1;
+    if (syllables.length === 1) return 0;
+
+    // Check for explicit accent
+    for (let i = 0; i < syllables.length; i++) {
+      if ([...syllables[i]].some(c => isAccented(c))) return i;
+    }
+
+    // No accent mark
+    const lastSyl = syllables[syllables.length - 1];
+    const lastChar = lastSyl[lastSyl.length - 1];
+    if (isVowel(lastChar) || lastChar === 'n' || lastChar === 's') {
+      return syllables.length - 2; // penúltima
+    }
+    return syllables.length - 1; // última
+  }
+
+  /**
+   * Cuenta sílabas totales en un texto.
+   */
+  function countInText(text) {
+    const words = text.match(/[a-záéíóúüñ]+/gi) || [];
+    let count = 0;
+    for (const w of words) count += syllabify(w).length;
+    return count;
+  }
+
+  return { syllabify, stressIndex, countInText };
+})();
+
+/* ============================================================
+   MÓDULO 3: MOTOR DE RIMAS
+   Indexa el diccionario por terminaciones para búsqueda rápida
+   ============================================================ */
+const RhymeEngine = (() => {
+  let words = [];
+  let consonantIndex = {}; // ending -> [words]
+  let assonantIndex = {};  // vowel pattern -> [words]
+  let loaded = false;
+
+  // Normaliza tildes para comparación
+  const ACCENT_MAP = { 'á':'a','é':'e','í':'i','ó':'o','ú':'u','ü':'u' };
+  function removeAccents(s) {
+    return [...s].map(c => ACCENT_MAP[c] || c).join('');
+  }
+
+  // Extrae las vocales de una cadena
+  function extractVowels(s) {
+    return [...removeAccents(s)].filter(c => 'aeiou'.includes(c)).join('');
+  }
+
+  /**
+   * Obtiene la terminación para rima consonante:
+   * desde la vocal tónica hasta el final de la palabra.
+   */
+  function getConsonantEnding(word) {
+    const syls = Syllables.syllabify(word);
+    if (syls.length === 0) return '';
+    const si = Syllables.stressIndex(syls);
+    if (si < 0) return '';
+    // Get from stressed syllable onward
+    const tail = syls.slice(si).join('');
+    // Find first vowel in stressed syllable
+    const norm = removeAccents(tail);
+    const vi = [...norm].findIndex(c => 'aeiou'.includes(c));
+    return vi >= 0 ? norm.slice(vi) : norm;
+  }
+
+  /**
+   * Obtiene el patrón vocálico para rima asonante:
+   * vocales desde la sílaba tónica.
+   */
+  function getAssonantPattern(word) {
+    const ending = getConsonantEnding(word);
+    return extractVowels(ending);
+  }
+
+  /**
+   * Carga e indexa el diccionario.
+   */
+  async function load(wordList) {
+    words = wordList;
+    consonantIndex = {};
+    assonantIndex = {};
+
+    for (const w of words) {
+      const ce = getConsonantEnding(w);
+      const ae = getAssonantPattern(w);
+
+      if (ce) {
+        if (!consonantIndex[ce]) consonantIndex[ce] = [];
+        consonantIndex[ce].push(w);
+      }
+      if (ae) {
+        if (!assonantIndex[ae]) assonantIndex[ae] = [];
+        assonantIndex[ae].push(w);
+      }
+    }
+
+    loaded = true;
+    return { totalWords: words.length, consonantKeys: Object.keys(consonantIndex).length, assonantKeys: Object.keys(assonantIndex).length };
+  }
+
+  /**
+   * Busca rimas consonantes para una palabra.
+   */
+  function findConsonant(word, limit = 80) {
+    if (!loaded) return [];
+    word = word.toLowerCase().trim();
+    const ending = getConsonantEnding(word);
+    if (!ending) return [];
+    const results = consonantIndex[ending] || [];
+    return results.filter(w => w !== word).slice(0, limit);
+  }
+
+  /**
+   * Busca rimas asonantes para una palabra.
+   */
+  function findAssonant(word, limit = 80) {
+    if (!loaded) return [];
+    word = word.toLowerCase().trim();
+    const pattern = getAssonantPattern(word);
+    if (!pattern) return [];
+    const results = assonantIndex[pattern] || [];
+    return results.filter(w => w !== word).slice(0, limit);
+  }
+
+  return { load, findConsonant, findAssonant, isLoaded: () => loaded };
+})();
+
+/* ============================================================
+   MÓDULO 4: SINÓNIMOS
+   Busca sinónimos desde el mapa precalculado
+   ============================================================ */
+const SynonymEngine = (() => {
+  let synMap = null;
+
+  async function load(data) {
+    synMap = data;
+    return Object.keys(synMap).length;
+  }
+
+  function find(word) {
+    if (!synMap) return [];
+    word = word.toLowerCase().trim();
+    return synMap[word] || [];
+  }
+
+  return { load, find };
+})();
+
+/* ============================================================
+   MÓDULO 5: HISTORIAL DE CAMBIOS (Undo/Redo)
+   ============================================================ */
+const UndoManager = (() => {
+  const MAX = 100;
+  let stack = [];
+  let pointer = -1;
+
+  function push(state) {
+    // Remove future states
+    stack = stack.slice(0, pointer + 1);
+    stack.push(state);
+    if (stack.length > MAX) stack.shift();
+    pointer = stack.length - 1;
+  }
+
+  function undo() {
+    if (pointer > 0) { pointer--; return stack[pointer]; }
+    return null;
+  }
+
+  function redo() {
+    if (pointer < stack.length - 1) { pointer++; return stack[pointer]; }
+    return null;
+  }
+
+  function clear() { stack = []; pointer = -1; }
+  function current() { return pointer >= 0 ? stack[pointer] : null; }
+
+  return { push, undo, redo, clear, current };
+})();
+
+/* ============================================================
+   MÓDULO 6: GENERADOR DE PDF (sin librería externa)
+   Genera un PDF básico con el contenido de la nota
+   ============================================================ */
+const PDFGenerator = (() => {
+  function generate(title, text) {
+    // Simple PDF 1.4 generation
+    const lines = text.split('\n');
+    const pageHeight = 800;
+    const margin = 50;
+    const lineHeight = 14;
+    const maxLinesPerPage = Math.floor((pageHeight - margin * 2) / lineHeight);
+
+    // Encode text for PDF (handle Spanish characters)
+    function pdfEncode(str) {
+      // Use PDFDocEncoding for latin chars
+      return str.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    }
+
+    const pages = [];
+    for (let i = 0; i < lines.length; i += maxLinesPerPage) {
+      pages.push(lines.slice(i, i + maxLinesPerPage));
+    }
+    if (pages.length === 0) pages.push([]);
+
+    let objects = [];
+    let objId = 0;
+
+    function addObj(content) {
+      objId++;
+      objects.push({ id: objId, content });
+      return objId;
+    }
+
+    // Catalog
+    const catalogId = addObj(''); // placeholder
+    // Pages node
+    const pagesId = addObj(''); // placeholder
+
+    // Font
+    const fontId = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+    const fontBoldId = addObj('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+
+    // Create page objects
+    const pageIds = [];
+    for (const pageLines of pages) {
+      let stream = `BT\n/F2 16 Tf\n${margin} ${pageHeight - margin} Td\n(${pdfEncode(title)}) Tj\n`;
+      stream += `/F1 11 Tf\n0 -24 Td\n`;
+      for (const line of pageLines) {
+        stream += `(${pdfEncode(line)}) Tj\n0 -${lineHeight} Td\n`;
+      }
+      stream += 'ET';
+
+      const streamId = addObj(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+      const pageId = addObj(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 595 ${pageHeight + 42}] /Contents ${streamId} 0 R /Resources << /Font << /F1 ${fontId} 0 R /F2 ${fontBoldId} 0 R >> >> >>`);
+      pageIds.push(pageId);
+    }
+
+    // Update catalog and pages
+    objects[catalogId - 1].content = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+    objects[pagesId - 1].content = `<< /Type /Pages /Kids [${pageIds.map(id => id + ' 0 R').join(' ')}] /Count ${pageIds.length} >>`;
+
+    // Build PDF
+    let pdf = '%PDF-1.4\n';
+    const offsets = [];
+    for (const obj of objects) {
+      offsets.push(pdf.length);
+      pdf += `${obj.id} 0 obj\n${obj.content}\nendobj\n`;
+    }
+
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    for (const off of offsets) {
+      pdf += `${String(off).padStart(10, '0')} 00000 n \n`;
+    }
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    return new Blob([pdf], { type: 'application/pdf' });
+  }
+
+  return { generate };
+})();
+
+/* ============================================================
+   MÓDULO 7: PLANTILLAS DE VERSOS
+   ============================================================ */
+const Templates = [
+  {
+    name: 'Soneto',
+    desc: '14 versos endecasílabos (11 sílabas) con rima ABBA ABBA CDC DCD.',
+    structure: '___________  (A)\n___________  (B)\n___________  (B)\n___________  (A)\n\n___________  (A)\n___________  (B)\n___________  (B)\n___________  (A)\n\n___________  (C)\n___________  (D)\n___________  (C)\n\n___________  (D)\n___________  (C)\n___________  (D)'
+  },
+  {
+    name: 'Cuarteto',
+    desc: '4 versos con rima ABAB o ABBA. Versátil para cualquier métrica.',
+    structure: '___________  (A)\n___________  (B)\n___________  (A)\n___________  (B)'
+  },
+  {
+    name: 'Haiku',
+    desc: '3 versos: 5-7-5 sílabas. Poesía breve de origen japonés.',
+    structure: '_____  (5 sílabas)\n_______  (7 sílabas)\n_____  (5 sílabas)'
+  },
+  {
+    name: 'Décima (Espinela)',
+    desc: '10 versos octosílabos con rima ABBAACCDDC.',
+    structure: '________  (A)\n________  (B)\n________  (B)\n________  (A)\n________  (A)\n________  (C)\n________  (C)\n________  (D)\n________  (D)\n________  (C)'
+  },
+  {
+    name: 'Lira',
+    desc: '5 versos: 7a 11B 7a 7b 11B.',
+    structure: '_______  (7a)\n___________  (11B)\n_______  (7a)\n_______  (7b)\n___________  (11B)'
+  },
+  {
+    name: 'Romance',
+    desc: 'Versos octosílabos, rima asonante en los pares.',
+    structure: '________\n________  (a)\n________\n________  (a)\n________\n________  (a)\n________\n________  (a)'
+  },
+  {
+    name: 'Verso libre',
+    desc: 'Sin métrica ni rima fija. Libertad total de expresión.',
+    structure: '...\n...\n...\n...\n\n...\n...\n...'
+  },
+  {
+    name: 'Estrofa de canción (Verso-Coro)',
+    desc: 'Estructura típica de canción popular.',
+    structure: '[Verso 1]\n________\n________\n________\n________\n\n[Pre-coro]\n________\n________\n\n[Coro]\n________\n________\n________\n________\n\n[Verso 2]\n________\n________\n________\n________'
+  }
+];
+
+/* ============================================================
+   MÓDULO 8: TUTORIAL INTERACTIVO
+   ============================================================ */
+const TutorialSteps = [
+  { title: '¡Bienvenido a VersoLibre!', text: 'Tu bloc de notas creativo para poetas y compositores. Funciona 100% offline en tu móvil.' },
+  { title: 'Crea tus versos', text: 'Pulsa el botón + para crear una nueva nota. Organízala con etiquetas: Poema, Canción o Borrador.' },
+  { title: 'Motor de rimas', text: 'Ve a "Herramientas" para buscar rimas consonantes y asonantes con nuestro diccionario de más de 66.000 palabras.' },
+  { title: 'Contador de sílabas', text: 'Siempre activo en el editor. Cuenta sílabas en tiempo real para mantener tu métrica perfecta.' },
+  { title: 'Plantillas y más', text: 'Usa plantillas de soneto, haiku, décima y más. Ajusta el tema, zoom y comparte tus versos. ¡A escribir!' }
+];
+
+/* ============================================================
+   MÓDULO 9: APP CONTROLLER
+   Orquesta toda la interfaz de usuario
+   ============================================================ */
+const App = (() => {
+  // State
+  let notes = [];
+  let currentNote = null;
+  let currentPanel = 'panelNotes';
+  let activeFilter = '';
+  let rhymeType = 'consonante';
+
+  // Settings
+  let settings = {
+    darkMode: true,
+    richEdit: false,
+    metrics: true,
+    zoom: 16,
+    tutorialSeen: false
+  };
+
+  // DOM refs
+  const $ = id => document.getElementById(id);
+  const panels = ['panelNotes', 'panelEditor', 'panelTools', 'panelTemplates', 'panelSettings', 'panelHelp'];
+
+  /* --- Navigation --- */
+  function showPanel(id) {
+    panels.forEach(p => {
+      const el = $(p);
+      if (el) el.classList.toggle('active', p === id);
+    });
+    currentPanel = id;
+
+    // Update nav buttons
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.panel === id);
+    });
+
+    // Show/hide FAB
+    $('fabNewNote').style.display = id === 'panelNotes' ? 'flex' : 'none';
+
+    // Show/hide back button
+    $('backBtn').style.display = id === 'panelEditor' ? 'flex' : 'none';
+  }
+
+  /* --- Notes rendering --- */
+  function renderNotes() {
+    const search = $('searchInput').value.toLowerCase();
+    let filtered = notes
+      .filter(n => {
+        if (activeFilter === 'favoritos') return n.fav;
+        if (activeFilter && activeFilter !== 'todos') return n.tag === activeFilter;
+        return true;
+      })
+      .filter(n => !search || n.title.toLowerCase().includes(search) || n.content.toLowerCase().includes(search))
+      .sort((a, b) => b.updated - a.updated);
+
+    const list = $('notesList');
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="results-empty">${search ? 'Sin resultados para tu búsqueda' : 'Aún no tienes notas. ¡Pulsa + para crear tu primer verso!'}</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(n => `
+      <div class="note-card" data-id="${n.id}">
+        <div class="card-actions">
+          <button class="card-action-btn fav-btn" data-id="${n.id}" title="Favorito">${n.fav ? '★' : '☆'}</button>
+          <button class="card-action-btn del-btn" data-id="${n.id}" title="Eliminar">✕</button>
+        </div>
+        <div class="note-card-title">
+          ${n.fav ? '<span class="fav-star">★</span>' : ''}
+          ${escapeHtml(n.title || 'Sin título')}
+        </div>
+        <div class="note-card-preview">${escapeHtml(n.content.slice(0, 120))}</div>
+        <div class="note-card-meta">
+          ${n.tag ? `<span class="tag-badge">${tagLabel(n.tag)}</span>` : ''}
+          <span>${timeAgo(n.updated)}</span>
+          <span>·</span>
+          <span>${Syllables.countInText(n.content)} síl.</span>
+        </div>
+      </div>
+    `).join('');
+
+    // Click handlers
+    list.querySelectorAll('.note-card').forEach(card => {
+      card.addEventListener('click', e => {
+        if (e.target.closest('.card-action-btn')) return;
+        openNote(card.dataset.id);
+      });
+    });
+    list.querySelectorAll('.fav-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        toggleFav(btn.dataset.id);
+      });
+    });
+    list.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        confirmDelete(btn.dataset.id);
+      });
+    });
+  }
+
+  function tagLabel(tag) {
+    const labels = { poema: '🪶 Poema', cancion: '🎵 Canción', borrador: '📝 Borrador' };
+    return labels[tag] || tag;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function timeAgo(ts) {
+    const diff = Date.now() - ts;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'ahora';
+    if (mins < 60) return `hace ${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `hace ${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return `hace ${days}d`;
+    return new Date(ts).toLocaleDateString('es');
+  }
+
+  /* --- Tags bar --- */
+  function renderTags() {
+    const tags = ['todos', 'favoritos', 'poema', 'cancion', 'borrador'];
+    const labels = { todos: '📋 Todos', favoritos: '⭐ Favoritos', poema: '🪶 Poemas', cancion: '🎵 Canciones', borrador: '📝 Borradores' };
+    $('tagsBar').innerHTML = tags.map(t =>
+      `<div class="tag-chip ${activeFilter === t || (!activeFilter && t === 'todos') ? 'active' : ''}" data-tag="${t}">${labels[t]}</div>`
+    ).join('');
+
+    $('tagsBar').querySelectorAll('.tag-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        activeFilter = chip.dataset.tag === 'todos' ? '' : chip.dataset.tag;
+        renderTags();
+        renderNotes();
+      });
+    });
+  }
+
+  /* --- Note CRUD --- */
+  function createNote(title = '', content = '', tag = '') {
+    const note = {
+      id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      title, content, tag, fav: false,
+      created: Date.now(), updated: Date.now()
+    };
+    notes.push(note);
+    Storage.saveNote(note);
+    return note;
+  }
+
+  function openNote(id) {
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    currentNote = note;
+    $('editorTitle').value = note.title;
+    $('editorTag').value = note.tag || '';
+    $('editorFavBtn').textContent = note.fav ? '★' : '☆';
+
+    if (settings.richEdit) {
+      $('editorRich').innerHTML = escapeHtml(note.content).replace(/\n/g, '<br>');
+    } else {
+      $('editorPlain').value = note.content;
+    }
+
+    UndoManager.clear();
+    UndoManager.push(note.content);
+    updateStats();
+    showPanel('panelEditor');
+  }
+
+  function saveCurrentNote() {
+    if (!currentNote) return;
+    currentNote.title = $('editorTitle').value.trim();
+    currentNote.tag = $('editorTag').value;
+    currentNote.content = getEditorContent();
+    currentNote.updated = Date.now();
+    Storage.saveNote(currentNote);
+  }
+
+  function getEditorContent() {
+    if (settings.richEdit) {
+      // Convert HTML to plain text
+      const div = $('editorRich');
+      return div.innerText || div.textContent || '';
+    }
+    return $('editorPlain').value;
+  }
+
+  function toggleFav(id) {
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    note.fav = !note.fav;
+    note.updated = Date.now();
+    Storage.saveNote(note);
+    if (currentNote && currentNote.id === id) {
+      $('editorFavBtn').textContent = note.fav ? '★' : '☆';
+    }
+    renderNotes();
+  }
+
+  function confirmDelete(id) {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="confirm-box">
+        <p>¿Eliminar esta nota permanentemente?</p>
+        <div class="confirm-btns">
+          <button class="btn-cancel" id="cancelDel">Cancelar</button>
+          <button class="btn-danger" id="confirmDel">Eliminar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('cancelDel').onclick = () => overlay.remove();
+    document.getElementById('confirmDel').onclick = () => {
+      notes = notes.filter(n => n.id !== id);
+      Storage.deleteNote(id);
+      overlay.remove();
+      if (currentNote && currentNote.id === id) {
+        currentNote = null;
+        showPanel('panelNotes');
+      }
+      renderNotes();
+    };
+  }
+
+  /* --- Editor stats --- */
+  function updateStats() {
+    const text = getEditorContent();
+    const wordsArr = text.match(/[a-záéíóúüñ]+/gi) || [];
+    $('statWords').textContent = wordsArr.length;
+    $('statSyllables').textContent = Syllables.countInText(text);
+
+    const lines = text.split('\n').filter(l => l.trim());
+    $('statVerses').textContent = lines.length;
+    $('statChars').textContent = text.length;
+  }
+
+  /* --- Sharing --- */
+  function showShareModal() {
+    if (!currentNote) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-sheet">
+        <h3>Compartir nota</h3>
+        <div class="modal-option" id="shareCopy">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar al portapapeles
+        </div>
+        <div class="modal-option" id="shareTxt">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+          Exportar como TXT
+        </div>
+        <div class="modal-option" id="sharePdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Exportar como PDF
+        </div>
+        <button class="modal-close" id="shareClose">Cerrar</button>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('shareClose').onclick = () => overlay.remove();
+
+    document.getElementById('shareCopy').onclick = () => {
+      const text = `${currentNote.title}\n\n${currentNote.content}`;
+      navigator.clipboard.writeText(text).then(() => showToast('Copiado al portapapeles'));
+      overlay.remove();
+    };
+
+    document.getElementById('shareTxt').onclick = () => {
+      const text = `${currentNote.title}\n\n${currentNote.content}`;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      downloadBlob(blob, `${currentNote.title || 'verso'}.txt`);
+      overlay.remove();
+    };
+
+    document.getElementById('sharePdf').onclick = () => {
+      const blob = PDFGenerator.generate(currentNote.title || 'VersoLibre', currentNote.content);
+      downloadBlob(blob, `${currentNote.title || 'verso'}.pdf`);
+      overlay.remove();
+    };
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+
+  /* --- Rhyme search --- */
+  function searchRhymes() {
+    const word = $('rhymeInput').value.trim();
+    if (!word) return;
+
+    const results = rhymeType === 'consonante'
+      ? RhymeEngine.findConsonant(word)
+      : RhymeEngine.findAssonant(word);
+
+    const container = $('rhymeResults');
+    const status = $('rhymeStatus');
+
+    if (results.length === 0) {
+      container.innerHTML = '';
+      status.textContent = `No se encontraron rimas ${rhymeType}s para "${word}"`;
+      status.style.display = 'block';
+    } else {
+      status.style.display = 'none';
+      container.innerHTML = results.map(w =>
+        `<span class="result-word" data-word="${escapeHtml(w)}">${escapeHtml(w)}</span>`
+      ).join('');
+
+      container.querySelectorAll('.result-word').forEach(el => {
+        el.addEventListener('click', () => {
+          navigator.clipboard.writeText(el.dataset.word);
+          showToast(`"${el.dataset.word}" copiado`);
+        });
+      });
+    }
+  }
+
+  function searchSynonyms() {
+    const word = $('synonymInput').value.trim();
+    if (!word) return;
+
+    const results = SynonymEngine.find(word);
+    const container = $('synonymResults');
+    const status = $('synonymStatus');
+
+    if (results.length === 0) {
+      container.innerHTML = '';
+      status.textContent = `No se encontraron sinónimos para "${word}"`;
+      status.style.display = 'block';
+    } else {
+      status.style.display = 'none';
+      container.innerHTML = results.map(w =>
+        `<span class="result-word" data-word="${escapeHtml(w)}">${escapeHtml(w)}</span>`
+      ).join('');
+
+      container.querySelectorAll('.result-word').forEach(el => {
+        el.addEventListener('click', () => {
+          navigator.clipboard.writeText(el.dataset.word);
+          showToast(`"${el.dataset.word}" copiado`);
+        });
+      });
+    }
+  }
+
+  /* --- Templates --- */
+  function renderTemplates() {
+    $('templatesList').innerHTML = Templates.map((t, i) => `
+      <div class="template-card" data-idx="${i}">
+        <h3>${t.name}</h3>
+        <p>${t.desc}</p>
+        <div class="template-preview">${t.structure}</div>
+      </div>
+    `).join('');
+
+    $('templatesList').querySelectorAll('.template-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const t = Templates[card.dataset.idx];
+        const note = createNote(t.name, t.structure, 'borrador');
+        renderNotes();
+        openNote(note.id);
+        showToast('Plantilla cargada');
+      });
+    });
+  }
+
+  /* --- Settings --- */
+  function applySettings() {
+    // Theme
+    document.documentElement.setAttribute('data-theme', settings.darkMode ? 'dark' : 'light');
+    $('toggleDarkMode').checked = settings.darkMode;
+
+    // Zoom
+    document.documentElement.style.setProperty('--note-font-size', settings.zoom + 'px');
+    $('zoomSlider').value = settings.zoom;
+    $('zoomValue').textContent = settings.zoom + 'px';
+
+    // Rich edit
+    $('toggleRichEdit').checked = settings.richEdit;
+    $('richToolbar').style.display = settings.richEdit ? 'flex' : 'none';
+    $('plainToolbar').style.display = settings.richEdit ? 'none' : 'flex';
+    $('editorPlain').style.display = settings.richEdit ? 'none' : 'block';
+    $('editorRich').style.display = settings.richEdit ? 'block' : 'none';
+
+    // Metrics
+    $('toggleMetrics').checked = settings.metrics;
+    $('statVersesWrap').style.display = settings.metrics ? 'flex' : 'none';
+    $('statCharWrap').style.display = settings.metrics ? 'flex' : 'none';
+  }
+
+  function saveSetting(key, val) {
+    settings[key] = val;
+    Storage.setSetting(key, val);
+    applySettings();
+  }
+
+  /* --- Tutorial --- */
+  function showTutorial() {
+    let step = 0;
+    const overlay = $('tutorialOverlay');
+    overlay.style.display = 'flex';
+
+    function render() {
+      const s = TutorialSteps[step];
+      $('tutTitle').textContent = s.title;
+      $('tutText').textContent = s.text;
+      $('tutDots').innerHTML = TutorialSteps.map((_, i) =>
+        `<div class="tutorial-dot ${i === step ? 'active' : ''}"></div>`
+      ).join('');
+      $('tutNextBtn').textContent = step === TutorialSteps.length - 1 ? '¡Empezar!' : 'Siguiente';
+    }
+
+    $('tutNextBtn').onclick = () => {
+      if (step < TutorialSteps.length - 1) { step++; render(); }
+      else { overlay.style.display = 'none'; saveSetting('tutorialSeen', true); }
+    };
+    $('tutSkipBtn').onclick = () => { overlay.style.display = 'none'; saveSetting('tutorialSeen', true); };
+
+    render();
+  }
+
+  /* --- Init --- */
+  async function init() {
+    // Load settings
+    for (const key of Object.keys(settings)) {
+      const saved = Storage.getSetting(key, undefined);
+      if (saved !== undefined) settings[key] = saved;
+    }
+    applySettings();
+
+    // Init DB and load notes
+    await Storage.init();
+    notes = await Storage.getAllNotes() || [];
+    renderTags();
+    renderNotes();
+    renderTemplates();
+
+    // Load dictionary
+    try {
+      const resp = await fetch('diccionario.txt');
+      const text = await resp.text();
+      const words = text.split('\n').filter(w => w.trim());
+      const stats = await RhymeEngine.load(words);
+      $('dictStatus').textContent = `${stats.totalWords.toLocaleString()} palabras cargadas`;
+    } catch (e) {
+      $('dictStatus').textContent = 'Error al cargar diccionario';
+      console.error('Dict load error:', e);
+    }
+
+    // Load synonyms
+    try {
+      const resp = await fetch('sinonimos.json');
+      const data = await resp.json();
+      const count = await SynonymEngine.load(data);
+      console.log(`Synonyms loaded: ${count} entries`);
+    } catch (e) {
+      console.warn('Synonyms load error:', e);
+    }
+
+    // Show tutorial if first visit
+    if (!settings.tutorialSeen) {
+      setTimeout(showTutorial, 500);
+    }
+
+    // --- Event listeners ---
+
+    // Navigation
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (currentPanel === 'panelEditor') saveCurrentNote();
+        showPanel(btn.dataset.panel);
+        if (btn.dataset.panel === 'panelNotes') renderNotes();
+      });
+    });
+
+    // Header buttons
+    $('backBtn').addEventListener('click', () => {
+      saveCurrentNote();
+      currentNote = null;
+      showPanel('panelNotes');
+      renderNotes();
+    });
+
+    $('settingsBtn').addEventListener('click', () => {
+      if (currentPanel === 'panelEditor') saveCurrentNote();
+      showPanel('panelSettings');
+    });
+
+    $('templatesBtn').addEventListener('click', () => {
+      if (currentPanel === 'panelEditor') saveCurrentNote();
+      showPanel('panelTemplates');
+    });
+
+    // FAB — new note
+    $('fabNewNote').addEventListener('click', () => {
+      const note = createNote();
+      renderNotes();
+      openNote(note.id);
+    });
+
+    // Search
+    $('searchInput').addEventListener('input', renderNotes);
+
+    // Editor events
+    let saveTimer = null;
+    function onEditorChange() {
+      updateStats();
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        if (currentNote) {
+          UndoManager.push(getEditorContent());
+          saveCurrentNote();
+        }
+      }, 600);
+    }
+
+    $('editorPlain').addEventListener('input', onEditorChange);
+    $('editorRich').addEventListener('input', onEditorChange);
+    $('editorTitle').addEventListener('input', () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveCurrentNote, 600);
+    });
+    $('editorTag').addEventListener('change', saveCurrentNote);
+
+    // Fav button in editor
+    $('editorFavBtn').addEventListener('click', () => {
+      if (currentNote) toggleFav(currentNote.id);
+    });
+
+    // Share button
+    $('editorShareBtn').addEventListener('click', showShareModal);
+
+    // Undo/Redo (plain mode)
+    $('undoBtnPlain').addEventListener('click', () => {
+      const state = UndoManager.undo();
+      if (state !== null) { $('editorPlain').value = state; updateStats(); }
+    });
+    $('redoBtnPlain').addEventListener('click', () => {
+      const state = UndoManager.redo();
+      if (state !== null) { $('editorPlain').value = state; updateStats(); }
+    });
+    // Undo/Redo (rich mode)
+    $('undoBtn').addEventListener('click', () => document.execCommand('undo'));
+    $('redoBtn').addEventListener('click', () => document.execCommand('redo'));
+
+    // Rhyme search
+    $('rhymeSearchBtn').addEventListener('click', searchRhymes);
+    $('rhymeInput').addEventListener('keydown', e => { if (e.key === 'Enter') searchRhymes(); });
+
+    // Rhyme type tabs
+    document.querySelectorAll('.rhyme-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.rhyme-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        rhymeType = tab.dataset.type;
+        if ($('rhymeInput').value.trim()) searchRhymes();
+      });
+    });
+
+    // Synonym search
+    $('synonymSearchBtn').addEventListener('click', searchSynonyms);
+    $('synonymInput').addEventListener('keydown', e => { if (e.key === 'Enter') searchSynonyms(); });
+
+    // Settings toggles
+    $('toggleDarkMode').addEventListener('change', e => saveSetting('darkMode', e.target.checked));
+    $('toggleRichEdit').addEventListener('change', e => {
+      // Transfer content between editors
+      if (e.target.checked) {
+        $('editorRich').innerHTML = escapeHtml($('editorPlain').value).replace(/\n/g, '<br>');
+      } else {
+        $('editorPlain').value = getEditorContent();
+      }
+      saveSetting('richEdit', e.target.checked);
+    });
+    $('toggleMetrics').addEventListener('change', e => saveSetting('metrics', e.target.checked));
+    $('zoomSlider').addEventListener('input', e => {
+      saveSetting('zoom', parseInt(e.target.value));
+    });
+
+    // Reset tutorial button
+    $('resetTutorialBtn').addEventListener('click', () => {
+      saveSetting('tutorialSeen', false);
+      showTutorial();
+    });
+
+    console.log('VersoLibre inicializado correctamente.');
+  }
+
+  return { init };
+})();
+
+/* ============================================================
+   INICIO: Registrar SW e iniciar app
+   ============================================================ */
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW registration failed:', err));
+}
+
+// Start app when DOM is ready
+document.addEventListener('DOMContentLoaded', App.init);
+</script>
+</body>
+</html>
